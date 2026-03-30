@@ -1,22 +1,21 @@
 #AI-Driven Serverless Image Processing Pipeline
 **Developer:** Abdullah Ahmed  
-**Region:** `eu-central-1` (Frankfurt)
+**Region:** `eu-central-1` (Frankfurt)  
 
 ---
 
 ## 1. Solution Architecture
 The architecture follows a fully decoupled, serverless pattern to handle image uploads, automated resizing, and AI-driven metadata extraction.
 
-![Architecture Diagram](./assets/architecture-diagram.png)
+![Architecture Diagram](architecture-diagram.png)
 
 ### Architectural Workflow:
 1.  **Handshake:** The Client (Browser) requests a secure upload URL from **Amazon API Gateway**.
 2.  **Authorization:** A **Lambda function** (`GetPresignedUrl`) generates an S3 Presigned URL, allowing the client to upload safely without AWS credentials.
 3.  **Ingestion:** The Client uploads the raw image directly to the **Source S3 Bucket**.
 4.  **Trigger:** S3 detects the new object and triggers the **ImageProcessor Lambda** via an Event Notification.
-5.  **Processing:** The Lambda installs the **Pillow** library in the `/tmp` directory, resizes the image, and saves it to the **Destination S3 Bucket**.
-6.  **Intelligence:** The Lambda calls **Amazon Rekognition** to identify objects and labels within the image.
-7.  **Persistence:** All metadata (Labels, S3 paths, and Timestamps) is stored in **Amazon DynamoDB**.
+5.  **Intelligence & Optimization:** The Lambda dynamically installs the **Pillow** library in `/tmp`, resizes the image, and calls **Amazon Rekognition** to identify objects and labels. This specific "Bootstrap" method was implemented to overcome library dependency and cold-start issues encountered during development.
+6.  **Persistence:** All metadata (Labels, S3 paths, and Timestamps) is stored in **Amazon DynamoDB**, and the processed image is saved to the **Destination S3 Bucket**.
 
 ---
 
@@ -47,14 +46,12 @@ The architecture follows a fully decoupled, serverless pattern to handle image u
 
 ---
 
-## 4. Repository Structure
-```text
-.
-├── assets/
-│   └── architecture-diagram.png    # Lucidchart Export
-├── frontend/
-│   └── index.html                  # Client-side Application
-├── lambda/
-│   ├── get_presigned_url.py        # API Integration Logic
-│   └── image_processor.py          # Processing & AI Logic
-└── README.md                       # Project Documentation
+## 4. Challenges Overcome
+1.  **CORS & Signature Mismatch:** Resolved 403 Forbidden errors by aligning S3 Signature Version 4 with the frontend Fetch API and removing conflicting headers.
+2.  **Cold Start Dependencies:** Optimized the Lambda runtime to dynamically install image processing libraries within the ephemeral `/tmp` storage, ensuring the deployment package remains lightweight.
+3.  **Regional Constraints:** Successfully migrated and synchronized all services within the `eu-central-1` region to minimize latency and ensure endpoint compatibility across S3 and API Gateway.
+
+---
+
+## 5. Live Demonstration (Optional)
+* **Demo Video:** [Link to Video/GIF]
